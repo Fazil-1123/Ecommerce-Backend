@@ -5,12 +5,15 @@ import com.example.ecommerce.domain.dto.CartItemDto;
 import com.example.ecommerce.domain.entities.Cart;
 import com.example.ecommerce.domain.entities.CartItem;
 import com.example.ecommerce.domain.entities.Product;
+import com.example.ecommerce.domain.entities.User;
 import com.example.ecommerce.mapper.CartMapper;
 import com.example.ecommerce.repositories.CartRepository;
 import com.example.ecommerce.repositories.ProductsRepository;
+import com.example.ecommerce.repositories.UserRepository;
 import com.example.ecommerce.services.CartService;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -20,11 +23,13 @@ public class CartServiceImpl implements CartService {
     private final CartRepository cartRepository;
     private final ProductsRepository productsRepository;
     private final CartMapper cartMapper;
+    private final UserRepository userRepository;
 
-    public CartServiceImpl(CartRepository cartRepository, ProductsRepository productsRepository, CartMapper cartMapper) {
+    public CartServiceImpl(CartRepository cartRepository, ProductsRepository productsRepository, CartMapper cartMapper, UserRepository userRepository) {
         this.cartRepository = cartRepository;
         this.productsRepository = productsRepository;
         this.cartMapper = cartMapper;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -36,8 +41,17 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartDto addItemToCart(Long userId, CartItemDto cartItemDto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found for ID: " + userId));
+
         Cart cart = cartRepository.findByUserId(userId)
-                .orElseGet(() -> new Cart(null, null, List.of()));
+                .orElseGet(() -> {
+                    Cart newCart = new Cart();
+                    newCart.setUser(user); // Associate the user with the new cart
+                    newCart.setCartItems(new ArrayList<>());
+                    return newCart;
+                });
+
 
         Product product = productsRepository.findById(cartItemDto.productId())
                 .orElseThrow(() -> new IllegalArgumentException("Product not found for ID: " + cartItemDto.productId()));

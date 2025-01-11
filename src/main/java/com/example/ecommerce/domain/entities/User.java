@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
 @Entity
 @Table(name = "users")
 @Data
@@ -23,13 +22,6 @@ public class User {
     @Email
     private String email;
 
-    @NotBlank
-    private String password;
-
-    @Enumerated(EnumType.STRING)
-    private Role role;
-
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Cart cart;
-
 }
